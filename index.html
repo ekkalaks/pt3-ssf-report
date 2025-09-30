@@ -3,330 +3,1333 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Strategy Backtesting Reports</title>
+<title>Strategy Backtesting Dashboard</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
 <style>
-  body { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
-  header { text-align: center; margin-bottom: 2.5rem; }
-  header h1 { margin-bottom: 0.5rem; }
-  .reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
-  article { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; background: #ffffff; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04); }
-  article h2 { margin-bottom: 0.5rem; }
-  article p { margin-bottom: 1rem; color: #475569; }
-  .timeframes { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .timeframes a { flex: 1; }
-  footer { margin-top: 3rem; text-align: center; font-size: 0.9rem; color: #94a3b8; }
-  .section-bar {
-    height: 8px;
-    background: linear-gradient(90deg, #3b82f6, #06b6d4);
-    border-radius: 4px;
-    margin: 2.5rem 0;
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(159, 122, 234, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeInDown 0.8s ease-out;
+  }
+
+  header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  header p {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 300;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+  }
+
+  .search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.8rem 1.2rem 0.8rem 3rem;
+    border: none;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .search-input:focus {
+    outline: none;
+    transform: translateY(-2px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #667eea;
+    pointer-events: none;
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 0.3rem;
+    border-radius: 50px;
+  }
+
+  .filter-btn {
+    padding: 0.6rem 1.5rem;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+
+  .filter-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .filter-btn.active {
+    background: rgba(255, 255, 255, 0.95);
+    color: #667eea;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .strategy-section {
+    margin-bottom: 4rem;
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: white;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .strategy-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-left: 1rem;
+  }
+
+  .ticker-count {
+    opacity: 0.8;
+    font-weight: 400;
+  }
+
+  .reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .ticker-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 1.8rem;
+    box-shadow: 0 10px 40px rgba(31, 38, 135, 0.1);
+    transition: all 0.3s ease;
+    animation: cardSlideIn 0.5s ease-out both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ticker-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .ticker-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(31, 38, 135, 0.2);
+  }
+
+  .ticker-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .ticker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .ticker-symbol {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .ticker-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    background: #16a34a;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .ticker-description {
+    color: #64748b;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .timeframe-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+
+  .report-btn {
+    padding: 0.8rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .report-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .report-btn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .report-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  }
+
+  .report-btn.secondary {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .report-btn span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .arrow-icon {
+    transition: transform 0.3s ease;
+  }
+
+  .report-btn:hover .arrow-icon {
+    transform: translateX(3px);
+  }
+
+  footer {
+    text-align: center;
+    padding: 3rem 0 2rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+    animation: fadeIn 1s ease-out 1s both;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    animation: slideUp 0.8s ease-out 0.4s both;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.3rem;
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes cardSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  @media (max-width: 768px) {
+    header h1 {
+      font-size: 2rem;
+    }
+
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .search-container {
+      max-width: 100%;
+    }
+
+    .filter-buttons {
+      justify-content: center;
+    }
+
+    .reports-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-bar {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+
+  .hidden {
+    display: none !important;
   }
 </style>
 </head>
 <body>
-  <header>
-    <h1>Strategy Reports</h1>
-    <p>Select a ticker and timeframe to explore the latest backtest results.</p>
-  </header>
+  <div class="container">
+    <header>
+      <h1>Strategy Backtesting Dashboard</h1>
+      <p>Explore comprehensive backtest results across multiple strategies and timeframes</p>
+    </header>
 
-<h3>Supertrend</h3>
-    <div class="section-bar" aria-hidden="true"></div>
-
-  <section class="supertrend reports-grid">
-
-    <article>
-      <h2>ADVANC</h2>
-      <p>Supertrend performance snapshots for ADVANC.</p>
-      <div class="timeframes">
-        <a href="advanc_supertrend_1D_report.html" role="button">1D Report</a>
-        <a href="advanc_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-number">10</span>
+        <span class="stat-label">Active Tickers</span>
       </div>
-    </article>
-
-    <article>
-      <h2>BBL</h2>
-      <p>Supertrend performance snapshots for BBL.</p>
-      <div class="timeframes">
-        <a href="bbl_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="bbl_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+      <div class="stat-item">
+        <span class="stat-number">3</span>
+        <span class="stat-label">Strategies</span>
       </div>
-    </article>
-
-    <article>
-      <h2>BCP</h2>
-      <p>Supertrend performance snapshots for BCP.</p>
-      <div class="timeframes">
-        <a href="bcp_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="bcp_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+      <div class="stat-item">
+        <span class="stat-number">60</span>
+        <span class="stat-label">Total Reports</span>
       </div>
-    </article>
+    </div>
 
-    <article>
-      <h2>BH</h2>
-      <p>Supertrend performance snapshots for BH.</p>
-      <div class="timeframes">
-        <a href="bh_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="bh_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+    <div class="controls">
+      <div class="search-container">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" class="search-input" placeholder="Search ticker symbols..." id="searchInput">
       </div>
-    </article>
-
-    <article>
-      <h2>DELTA</h2>
-      <p>Supertrend performance snapshots for DELTA.</p>
-      <div class="timeframes">
-        <a href="delta_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="delta_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-strategy="all">All Strategies</button>
+        <button class="filter-btn" data-strategy="supertrend">Supertrend</button>
+        <button class="filter-btn" data-strategy="macd-zero">MACD Zero</button>
+        <button class="filter-btn" data-strategy="macd-signal">MACD Signal</button>
       </div>
-    </article>
+    </div>
 
-    <article>
-      <h2>KBANK</h2>
-      <p>Supertrend performance snapshots for KBANK.</p>
-      <div class="timeframes">
-        <a href="kbank_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="kbank_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+    <section class="strategy-section" data-strategy="supertrend">
+      <div class="section-header">
+        <h2 class="section-title">
+          Supertrend Strategy
+          <span class="strategy-badge">Trend Following</span>
+        </h2>
+        <span class="ticker-count">10 tickers</span>
       </div>
-    </article>
+      <div class="reports-grid">
+        <article class="ticker-card" data-ticker="ADVANC">
+          <div class="ticker-header">
+            <span class="ticker-symbol">ADVANC</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="advanc_supertrend_1D_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="advanc_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
 
-    <article>
-      <h2>KTC</h2>
-      <p>Supertrend performance snapshots for KTC.</p>
-      <div class="timeframes">
-        <a href="ktc_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="ktc_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+        <article class="ticker-card" data-ticker="BBL">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BBL</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="bbl_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bbl_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="BCP">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BCP</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="bcp_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bcp_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="BH">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BH</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="bh_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bh_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="DELTA">
+          <div class="ticker-header">
+            <span class="ticker-symbol">DELTA</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="delta_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="delta_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="KBANK">
+          <div class="ticker-header">
+            <span class="ticker-symbol">KBANK</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="kbank_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="kbank_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="KTC">
+          <div class="ticker-header">
+            <span class="ticker-symbol">KTC</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="ktc_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="ktc_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="PTTEP">
+          <div class="ticker-header">
+            <span class="ticker-symbol">PTTEP</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="pttep_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="pttep_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="SCB">
+          <div class="ticker-header">
+            <span class="ticker-symbol">SCB</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="scb_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="scb_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="TRUE">
+          <div class="ticker-header">
+            <span class="ticker-symbol">TRUE</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">Supertrend performance analysis with dynamic support and resistance levels</p>
+          <div class="timeframe-buttons">
+            <a href="true_supertrend_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="true_supertrend_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
       </div>
-    </article>
+    </section>
 
-    <article>
-      <h2>PTTEP</h2>
-      <p>Supertrend performance snapshots for PTTEP.</p>
-      <div class="timeframes">
-        <a href="pttep_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="pttep_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+    <section class="strategy-section" data-strategy="macd-zero">
+      <div class="section-header">
+        <h2 class="section-title">
+          MACD Cross Zero
+          <span class="strategy-badge">Momentum</span>
+        </h2>
+        <span class="ticker-count">10 tickers</span>
       </div>
-    </article>
+      <div class="reports-grid">
+        <article class="ticker-card" data-ticker="ADVANC">
+          <div class="ticker-header">
+            <span class="ticker-symbol">ADVANC</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="advanc_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="advanc_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
 
-    <article>
-      <h2>SCB</h2>
-      <p>Supertrend performance snapshots for SCB.</p>
-      <div class="timeframes">
-        <a href="scb_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="scb_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+        <article class="ticker-card" data-ticker="BBL">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BBL</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="bbl_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bbl_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="BCP">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BCP</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="bcp_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bcp_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="BH">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BH</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="bh_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bh_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="DELTA">
+          <div class="ticker-header">
+            <span class="ticker-symbol">DELTA</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="delta_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="delta_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="KBANK">
+          <div class="ticker-header">
+            <span class="ticker-symbol">KBANK</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="kbank_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="kbank_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="KTC">
+          <div class="ticker-header">
+            <span class="ticker-symbol">KTC</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="ktc_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="ktc_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="PTTEP">
+          <div class="ticker-header">
+            <span class="ticker-symbol">PTTEP</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="pttep_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="pttep_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="SCB">
+          <div class="ticker-header">
+            <span class="ticker-symbol">SCB</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="scb_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="scb_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="TRUE">
+          <div class="ticker-header">
+            <span class="ticker-symbol">TRUE</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD zero-line crossover strategy for momentum identification</p>
+          <div class="timeframe-buttons">
+            <a href="true_macdcrosszero_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="true_macdcrosszero_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
       </div>
-    </article>
+    </section>
 
-    <article>
-      <h2>TRUE</h2>
-      <p>Supertrend performance snapshots for TRUE.</p>
-      <div class="timeframes">
-        <a href="true_supertrend_1d_report.html" role="button">1D Report</a>
-        <a href="true_supertrend_4h_report.html" role="button" class="secondary">4H Report</a>
+    <section class="strategy-section" data-strategy="macd-signal">
+      <div class="section-header">
+        <h2 class="section-title">
+          MACD Cross Signal
+          <span class="strategy-badge">Signal Line</span>
+        </h2>
+        <span class="ticker-count">10 tickers</span>
       </div>
-    </article>
+      <div class="reports-grid">
+        <article class="ticker-card" data-ticker="ADVANC">
+          <div class="ticker-header">
+            <span class="ticker-symbol">ADVANC</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="advanc_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="advanc_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
 
-  </section>
-<h3>MACD Cross Zero</h3>
-  <div class="section-bar" aria-hidden="true"></div>
+        <article class="ticker-card" data-ticker="BBL">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BBL</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="bbl_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bbl_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
 
-  <section class="macd cross zero reports-grid">
-    <article>
-      <h2>ADVANC</h2>
-      <p>MACD Cross Zero performance snapshots for ADVANC.</p>
-      <div class="timeframes">
-        <a href="advanc_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="advanc_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
+        <article class="ticker-card" data-ticker="BCP">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BCP</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="bcp_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bcp_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="BH">
+          <div class="ticker-header">
+            <span class="ticker-symbol">BH</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="bh_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="bh_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="DELTA">
+          <div class="ticker-header">
+            <span class="ticker-symbol">DELTA</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="delta_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="delta_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="KBANK">
+          <div class="ticker-header">
+            <span class="ticker-symbol">KBANK</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="kbank_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="kbank_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="KTC">
+          <div class="ticker-header">
+            <span class="ticker-symbol">KTC</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="ktc_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="ktc_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="PTTEP">
+          <div class="ticker-header">
+            <span class="ticker-symbol">PTTEP</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="pttep_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="pttep_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="SCB">
+          <div class="ticker-header">
+            <span class="ticker-symbol">SCB</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="scb_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="scb_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="ticker-card" data-ticker="TRUE">
+          <div class="ticker-header">
+            <span class="ticker-symbol">TRUE</span>
+            <span class="ticker-status">
+              <span class="status-dot"></span>
+              Active
+            </span>
+          </div>
+          <p class="ticker-description">MACD signal line crossover for precise entry and exit timing</p>
+          <div class="timeframe-buttons">
+            <a href="true_macdcrosssignal_1d_report.html" class="report-btn">
+              <span>1D Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+            <a href="true_macdcrosssignal_4h_report.html" class="report-btn secondary">
+              <span>4H Report</span>
+              <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        </article>
       </div>
-    </article>
+    </section>
 
-    <article>
-      <h2>BBL</h2>
-      <p>MACD Cross Zero performance snapshots for BBL.</p>
-      <div class="timeframes">
-        <a href="bbl_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="bbl_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
+    <footer>
+      <p>Historical backtesting data | Interactive charts and statistics in each report</p>
+    </footer>
+  </div>
 
-    <article>
-    <h2>BCP</h2>
-    <p>MACD Cross Zero performance snapshots for BCP.</p>
-    <div class="timeframes">
-        <a href="bcp_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="bcp_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-<!--        <a href="bcp_macdcrosszero_4h_report_p_tuk.html" role="button" class="third">4H Report (P Tuk)</a>-->
-        </div>
-    </article>
+  <script>
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const tickerCards = document.querySelectorAll('.ticker-card');
 
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
 
-    <article>
-      <h2>BH</h2>
-      <p>MACD Cross Zero performance snapshots for BH.</p>
-      <div class="timeframes">
-        <a href="bh_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="bh_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
+      tickerCards.forEach(card => {
+        const ticker = card.getAttribute('data-ticker').toLowerCase();
+        if (ticker.includes(searchTerm) || searchTerm === '') {
+          card.classList.remove('hidden');
+          card.style.animation = 'fadeIn 0.3s ease';
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    });
 
-    <article>
-      <h2>DELTA</h2>
-      <p>MACD Cross Zero performance snapshots for DELTA.</p>
-      <div class="timeframes">
-        <a href="delta_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="delta_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
+    // Filter functionality
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const strategySections = document.querySelectorAll('.strategy-section');
 
-    <article>
-      <h2>KBANK</h2>
-      <p>MACD Cross Zero performance snapshots for KBANK.</p>
-      <div class="timeframes">
-        <a href="kbank_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="kbank_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-<!--          <a href="kbank_macdcrosszero_1d_report_p_tuk.html" role="button" class="third">1D Report (P Tuk)</a>-->
-      </div>
-    </article>
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Update active button
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
 
-    <article>
-      <h2>KTC</h2>
-      <p>MACD Cross Zero performance snapshots for KTC.</p>
-      <div class="timeframes">
-        <a href="ktc_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="ktc_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
+        const strategy = button.getAttribute('data-strategy');
 
-    <article>
-      <h2>PTTEP</h2>
-      <p>MACD Cross Zero performance snapshots for PTTEP.</p>
-      <div class="timeframes">
-        <a href="pttep_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="pttep_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
+        // Show/hide sections
+        strategySections.forEach(section => {
+          if (strategy === 'all' || section.getAttribute('data-strategy') === strategy) {
+            section.classList.remove('hidden');
+            section.style.animation = 'fadeInUp 0.5s ease';
+          } else {
+            section.classList.add('hidden');
+          }
+        });
+      });
+    });
 
-    <article>
-      <h2>SCB</h2>
-      <p>MACD Cross Zero performance snapshots for SCB.</p>
-      <div class="timeframes">
-        <a href="scb_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="scb_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
+    // Add stagger animation to cards
+    tickerCards.forEach((card, index) => {
+      card.style.animationDelay = `${index * 0.05}s`;
+    });
 
-    <article>
-      <h2>TRUE</h2>
-      <p>MACD Cross Zero performance snapshots for TRUE.</p>
-      <div class="timeframes">
-        <a href="true_macdcrosszero_1d_report.html" role="button">1D Report</a>
-        <a href="true_macdcrosszero_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-
-  </section>
-
-  <h3>MACD Cross Signal</h3>
-  <div class="section-bar" aria-hidden="true"></div>
-
-  <section class="macd cross signal reports-grid">
-    <article>
-      <h2>ADVANC</h2>
-      <p>MACD Cross Signal performance snapshots for ADVANC.</p>
-      <div class="timeframes">
-        <a href="advanc_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="advanc_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-      <h2>BBL</h2>
-      <p>MACD Cross Signal performance snapshots for BBL.</p>
-      <div class="timeframes">
-        <a href="bbl_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="bbl_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-    <h2>BCP</h2>
-    <p>MACD Cross Signal performance snapshots for BCP.</p>
-    <div class="timeframes">
-        <a href="bcp_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="bcp_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-<!--        <a href="bcp_macdcrosszero_4h_report_p_tuk.html" role="button" class="third">4H Report (P Tuk)</a>-->
-        </div>
-    </article>
-
-
-    <article>
-      <h2>BH</h2>
-      <p>MACD Cross Signal performance snapshots for BH.</p>
-      <div class="timeframes">
-        <a href="bh_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="bh_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-      <h2>DELTA</h2>
-      <p>MACD Cross Signal performance snapshots for DELTA.</p>
-      <div class="timeframes">
-        <a href="delta_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="delta_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-      <h2>KBANK</h2>
-      <p>MACD Cross Signal performance snapshots for KBANK.</p>
-      <div class="timeframes">
-        <a href="kbank_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="kbank_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-      <h2>KTC</h2>
-      <p>MACD Cross Signal performance snapshots for KTC.</p>
-      <div class="timeframes">
-        <a href="ktc_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="ktc_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-      <h2>PTTEP</h2>
-      <p>MACD Cross Signal performance snapshots for PTTEP.</p>
-      <div class="timeframes">
-        <a href="pttep_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="pttep_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-      <h2>SCB</h2>
-      <p>MACD Cross Signal performance snapshots for SCB.</p>
-      <div class="timeframes">
-        <a href="scb_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="scb_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-    <article>
-      <h2>TRUE</h2>
-      <p>MACD Cross Signal performance snapshots for TRUE.</p>
-      <div class="timeframes">
-        <a href="true_macdcrosssignal_1d_report.html" role="button">1D Report</a>
-        <a href="true_macdcrosssignal_4h_report.html" role="button" class="secondary">4H Report</a>
-      </div>
-    </article>
-
-
-  </section>
-
-  <footer>
-    <small>Open any report directly for interactive charts and detailed statistics.</small>
-  </footer>
+    // Interactive hover effects
+    document.querySelectorAll('.report-btn').forEach(btn => {
+      btn.addEventListener('mouseenter', (e) => {
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+        e.target.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+  </script>
 </body>
 </html>
